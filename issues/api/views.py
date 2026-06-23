@@ -15,8 +15,7 @@ from .permissions import IsOwnerOrReadOnly
 from issues.models import Category, Issue
 from .filters import IssueFilter
 from .pagination import MyIssuePagination, IssuePagination
-
-
+from .throttles import UpdateIssueThrottle
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -103,6 +102,11 @@ class RetrieveUpdateIssueView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsOwnerOrReadOnly]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     lookup_field = 'issue_id'
+
+    def get_throttles(self):
+        if self.request.method in ["PUT","PATCH"]:
+            return [UpdateIssueThrottle()]
+        return super().get_throttles()
 
     def perform_update(self,serializer):
 

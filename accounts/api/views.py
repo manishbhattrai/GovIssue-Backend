@@ -9,6 +9,7 @@ from .serializers import (
     UserRegisterSerializer, LoginSerializer,
     UpdateRetrieveDeleteUserProfileSerializer
     )
+from .throttles import LoginThrottle, RegisterThrottle, ProfileUpdateThrottle
 
 User = get_user_model()
 
@@ -18,9 +19,12 @@ class UserRegistrationView(generics.CreateAPIView):
     serializer_class = UserRegisterSerializer
     permission_classes = [AllowAny]
     parser_classes = [MultiPartParser, FormParser]
+    throttle_classes = [RegisterThrottle]
 
 
 class LoginView(APIView):
+
+    throttle_classes = [LoginThrottle]
 
     def post(self, request):
 
@@ -66,6 +70,12 @@ class UpdateRetrieveDeleteUserProfileView(generics.RetrieveUpdateDestroyAPIView)
 
     serializer_class = UpdateRetrieveDeleteUserProfileSerializer
     parser_classes = [MultiPartParser,FormParser]
+
+    def get_throttles(self):
+        if self.request.method in ["PUT", "PATCH", "DELETE"]:
+            return [ProfileUpdateThrottle()]
+
+        return super().get_throttles()
 
     def get_object(self):
         return self.request.user
