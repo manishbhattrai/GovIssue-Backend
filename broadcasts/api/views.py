@@ -2,7 +2,7 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from broadcasts.models import Broadcast, BroadcastVote, BroadcastComment
-from .serializers import BroadcastSerializer, CommentSerializer
+from .serializers import BroadcastSerializer, CommentSerializer, CommentCreateSerializer, VoteCreateSerializer
 
 
 class BroadcastViewSet(viewsets.ModelViewSet):
@@ -26,7 +26,13 @@ class BroadcastViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def vote(self, request, pk=None):
         broadcast = self.get_object()
-        v_type = request.data.get('type')
+
+        serializer = VoteCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        #v_type = request.data.get('type')
+
+        v_type = serializer.validated_data['type']
         score = 1 if v_type == 'up' else -1
 
         vote, created = BroadcastVote.objects.get_or_create(
@@ -50,8 +56,18 @@ class BroadcastViewSet(viewsets.ModelViewSet):
         if not broadcast.comments_enabled:
             return Response({'error': 'Comments are disabled'}, status=status.HTTP_403_FORBIDDEN)
 
-        parent_id = request.data.get('parent')
-        text = request.data.get('text')
+        serializer = CommentCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        #parent_id = request.data.get('parent')
+        #text = request.data.get('text')
+
+        parent_id = serializer.validated_data.get('parent')
+        text = serializer.validated_data['text']
+
+        if parent_id:
+            if not BroadcastComment.objects.filter(id=parent_id,broadcast=broadcast).exists():
+                return Response({"error":"Invalid parent comment"}, status=status.HTTP_400_BAD_REQUEST)
 
         comment = BroadcastComment.objects.create(
             broadcast=broadcast,

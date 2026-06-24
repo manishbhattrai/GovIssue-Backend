@@ -59,3 +59,10 @@ class BroadcastSerializer(serializers.ModelSerializer):
             if vote:
                 return 'up' if vote.vote_type == 1 else 'down'
         return None
+
+class CommentCreateSerializer(serializers.Serializer):
+    parent = serializers.IntegerField(required=False, allow_null=True)
+    text = serializers.CharField()
+
+class VoteCreateSerializer(serializers.Serializer):
+    type  = serializers.ChoiceField(choices=['up','down'])
