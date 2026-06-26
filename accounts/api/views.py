@@ -25,6 +25,7 @@ class UserRegistrationView(generics.CreateAPIView):
 class LoginView(APIView):
 
     throttle_classes = [LoginThrottle]
+    permission_classes = [AllowAny]
 
     def post(self, request):
 

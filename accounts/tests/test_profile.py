@@ -99,3 +99,21 @@ class ProfileTest(TestSetup):
         )
 
         self.assertEqual(res.status_code, 200)
+
+    def test_profile_delete(self):
+
+        self.authenticate(self.user)
+        res = self.client.delete(
+            self.profile_url
+        )
+        self.assertEqual(res.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.is_active)
+
+    def test_unauthenticated_user_cannot_delete_profile(self):
+
+        res = self.client.delete(
+            self.profile_url
+        )
+
+        self.assertEqual(res.status_code, 401)
