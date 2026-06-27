@@ -24,7 +24,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     lookup_field = 'slug'
 
-    def get_permission(self):
+    def get_permissions(self):
 
         if self.request.method in ['GET','HEAD','OPTIONS']:
             return [IsAuthenticated()]
