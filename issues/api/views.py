@@ -1,3 +1,4 @@
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import generics, viewsets, status
 from rest_framework.parsers import MultiPartParser,FormParser, JSONParser
@@ -112,18 +113,18 @@ class RetrieveUpdateIssueView(generics.RetrieveUpdateAPIView):
 
         instance = self.get_object()
         old_status = instance.status
-        new_status = serializer.validated_data.get('status')
+        new_status = serializer.validated_data.get('status', None)
 
         from rest_framework.exceptions import ValidationError
 
 
-        if old_status == 'r' and new_status in ['v','p','o','ip']:
+        if new_status and old_status == 'r' and new_status in ['v','p','o','ip']:
             raise ValidationError("Resolved issues cannot be changed back to other status.")
 
-        elif old_status == 'p' and new_status != 'v':
+        elif new_status and old_status == 'p' and new_status != 'v':
             raise ValidationError("Only verified status is available.")
 
-        elif old_status in ['v','o','ip'] and new_status == 'p':
+        elif new_status and old_status in ['v','o','ip'] and new_status == 'p':
             raise ValidationError(" Status cannot be changed to pending.")
 
         updated_issue = serializer.save()
